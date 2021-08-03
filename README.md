@@ -59,3 +59,6 @@ data class GetLaunchpadRequest(
     data class Launchpad(val details: String = "")
 }
 ```
+
+## Examples
+See [https://github.com/katiedotson/gqlk/tree/main/lib/src/test/kotlin/xyz/katiedotson/gqlk]

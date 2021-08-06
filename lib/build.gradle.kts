@@ -11,6 +11,7 @@ import kotlin.math.sign
 plugins {
     kotlin("jvm") version "1.4.31"
     kotlin("kapt") version "1.5.21"
+    id("org.jetbrains.dokka") version "1.4.20"
 
     `java-library`
     `maven-publish`
@@ -19,6 +20,22 @@ plugins {
 
 group = "xyz.katiedotson.gqlk"
 version = "0.1.0"
+
+val dokkaOutputDir = "$buildDir/dokka"
+
+tasks.dokkaHtml {
+    outputDirectory.set(file(dokkaOutputDir))
+}
+
+val deleteDokkaOutputDir by tasks.register<Delete>("deleteDokkaOutputDirectory") {
+    delete(dokkaOutputDir)
+}
+
+val javadocJar = tasks.register<Jar>("javadocJar") {
+    dependsOn(deleteDokkaOutputDir, tasks.dokkaHtml)
+    archiveClassifier.set("javadoc")
+    from(dokkaOutputDir)
+}
 
 java {
     withJavadocJar()
@@ -87,25 +104,41 @@ publishing {
     publishing {
         repositories {
             maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/katiedotson/gqlk")
+                name = "OSSRH"
+                url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
                 credentials {
-                    username = project.findProperty("gpr.user") as String?
-                    password = project.findProperty("gpr.key") as String?
+                    username = project.findProperty("mvn.user") as String?
+                    password = project.findProperty("mvn.key") as String?
                 }
             }
-//            maven {
-//                name = "OSSRH"
-//                url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-//                credentials {
-//                    username = project.findProperty("mvn.user") as String?
-//                    password = project.findProperty("mvn.key") as String?
-//                }
-//            }
         }
         publications {
-            register<MavenPublication>("gpr") {
-                from(components["java"])
+            withType<MavenPublication> {
+                pom {
+                    name.set("GqlK")
+                    description.set("A concise toolkit for generating GraphQl requests in Kotlin")
+                    licenses {
+                        license {
+                            name.set("The Apache License, Version 2.0")
+                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        }
+                    }
+                    url.set("http://katiedotson.xyz")
+                    issueManagement {
+                        system.set("Github")
+                        url.set("https://github.com/katiedotson/gqlk/issues")
+                    }
+                    scm {
+                        connection.set("https://github.com/katiedotson/gqlk.git")
+                        url.set("https://github.com/katiedotson/gqlk")
+                    }
+                    developers {
+                        developer {
+                            name.set("Katie Dotson")
+                            email.set("katie@katiedotson.xyz")
+                        }
+                    }
+                }
             }
         }
     }

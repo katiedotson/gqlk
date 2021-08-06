@@ -84,70 +84,29 @@ tasks.named<Test>("test") {
 }
 
 publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            artifactId = "gqlk"
-            from(components["kotlin"])
-            versionMapping {
-                usage("java-api") {
-                    fromResolutionOf("runtimeClasspath")
-                }
-                usage("java-runtime") {
-                    fromResolutionResult()
+    publishing {
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/katiedotson/gqlk")
+                credentials {
+                    username = project.findProperty("gpr.user") as String?
+                    password = project.findProperty("gpr.key") as String?
                 }
             }
-            pom {
-                name.set("gqlk")
-                description.set("Concise GraphQl request toolkit for Kotlin")
-//                url.set("http://www.example.com/library")
-//                properties.set(mapOf(
-//                    "myProp" to "value",
-//                    "prop.with.dots" to "anotherValue"
-//                ))
-                licenses {
-                    license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("katiedotson")
-                        name.set("Katie Dotson")
-                        email.set("katie@katiedotson.xyz")
-                    }
-                }
-//                scm {
-//                    connection.set("scm:git:git://example.com/my-library.git")
-//                    developerConnection.set("scm:git:ssh://example.com/my-library.git")
-//                    url.set("http://example.com/my-library/")
+//            maven {
+//                name = "OSSRH"
+//                url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+//                credentials {
+//                    username = project.findProperty("mvn.user") as String?
+//                    password = project.findProperty("mvn.key") as String?
 //                }
+//            }
+        }
+        publications {
+            register<MavenPublication>("gpr") {
+                from(components["java"])
             }
         }
     }
-    repositories {
-        maven {
-            // change URLs to point to your repos, e.g. http://my.org/repo
-            val releasesRepoUrl = uri(layout.buildDirectory.dir("repos/releases"))
-            val snapshotsRepoUrl = uri(layout.buildDirectory.dir("repos/snapshots"))
-            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
-        }
-    }
 }
-
-signing {
-    sign(publishing.publications["mavenJava"])
-}
-
-tasks.jar {
-    manifest {
-        attributes(mapOf("Implementation-Title" to project.name,
-            "Implementation-Version" to project.version))
-    }
-}
-
-//tasks.javadoc {
-//    if (JavaVersion.current().isJava9Compatible) {
-//        (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
-//    }
-//}

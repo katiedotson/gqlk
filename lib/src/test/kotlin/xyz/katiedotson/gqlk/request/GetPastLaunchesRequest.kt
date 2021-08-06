@@ -1,16 +1,14 @@
 package xyz.katiedotson.gqlk.request
 
-import com.google.gson.annotations.JsonAdapter
 import xyz.katiedotson.gqlk.GqlK
 import xyz.katiedotson.gqlk.contracts.GqlKRequestType
-import xyz.katiedotson.gqlk.serialization.GraphQlCollectionJsonSerializer
 
 data class GetPastLaunchesRequest(
     val limit: Int = 10,
     override val path: String = "launchesPast",
     override val requestBody: GetPastLaunchesResponse = GetPastLaunchesResponse(),
     override val type: GqlKRequestType = GqlKRequestType.QUERY
-) : GqlK<GetPastLaunchesRequest.GetPastLaunchesResponse>() {
+) : GqlK() {
     data class GetPastLaunchesResponse(
         val launchesPast: List<PastLaunch> = listOf(PastLaunch())
     )

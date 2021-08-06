@@ -1,16 +1,14 @@
 package xyz.katiedotson.gqlk.request
 
-import com.google.gson.annotations.JsonAdapter
 import xyz.katiedotson.gqlk.GqlK
 import xyz.katiedotson.gqlk.contracts.GqlKRequestType
-import xyz.katiedotson.gqlk.serialization.GraphQlCollectionJsonSerializer
 
 data class GetCountriesRequest(
     val filter: CountryFilter = CountryFilter(),
     override val type: GqlKRequestType = GqlKRequestType.QUERY,
     override val path: String = "countries",
     override val requestBody: GetCountriesResponse = GetCountriesResponse(),
-) : GqlK<GetCountriesRequest.GetCountriesResponse>() {
+) : GqlK() {
     companion object {
         fun countryFilter(continentEq: String): CountryFilter {
             return CountryFilter(CountryFilterInput(continentEq))

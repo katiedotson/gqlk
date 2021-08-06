@@ -8,7 +8,7 @@ data class GetLaunchpadRequest(
     override val path: String = "launchpad",
     override val requestBody: Launchpad = Launchpad(),
     override val type: GqlKRequestType = GqlKRequestType.QUERY
-) : GqlK<GetLaunchpadRequest.Launchpad>() {
+) : GqlK() {
 
     data class GetLaunchpadResponse(
         val launchpad: Launchpad = Launchpad()

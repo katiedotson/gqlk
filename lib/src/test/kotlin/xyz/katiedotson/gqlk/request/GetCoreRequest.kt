@@ -8,7 +8,7 @@ data class GetCoreRequest(
     override val path: String = "core",
     override val type: GqlKRequestType = GqlKRequestType.QUERY,
     override val requestBody: GetCoreResponse = GetCoreResponse(),
-) : GqlK<GetCoreRequest.GetCoreResponse>() {
+) : GqlK() {
     data class GetCoreResponse(val id: NonexistentProperty = NonexistentProperty())
     data class NonexistentProperty(val nonexistent: String = "")
 }

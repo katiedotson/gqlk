@@ -1,19 +1,17 @@
 package xyz.katiedotson.gqlk.request
 
-import com.google.gson.annotations.JsonAdapter
 import xyz.katiedotson.gqlk.GqlK
 import xyz.katiedotson.gqlk.contracts.GqlKRequestType
 import xyz.katiedotson.gqlk.domain.Capsule
 import xyz.katiedotson.gqlk.domain.Dragon
 import xyz.katiedotson.gqlk.domain.Mission
-import xyz.katiedotson.gqlk.serialization.GraphQlCollectionJsonSerializer
 
 data class GetCapsuleRequest(
     val id: String,
     override val path: String = "capsule",
     override val type: GqlKRequestType = GqlKRequestType.QUERY,
     override val requestBody: GetCapsuleResponse = GetCapsuleResponse(),
-) : GqlK<GetCapsuleRequest.GetCapsuleResponse>() {
+) : GqlK() {
     data class GetCapsuleResponse(
         var capsule: CapsuleResponse = CapsuleResponse(),
     ) {

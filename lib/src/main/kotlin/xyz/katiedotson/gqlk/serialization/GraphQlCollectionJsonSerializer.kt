@@ -16,24 +16,30 @@ import kotlin.reflect.jvm.jvmErasure
 /**
  * Serialize [Collection]s as if they were Objects.
  */
-class GraphQlCollectionJsonSerializer<T> : JsonSerializer<List<T>> {
+class GraphQlCollectionJsonSerializer : JsonSerializer<List<Any>> {
 
     /**
      *
      */
     override fun serialize(
-        src: List<T>?,
+        src: List<Any>?,
         typeOfSrc: Type?,
         context: JsonSerializationContext?,
     ): JsonElement {
+
+        val obj: Any?
+
+        if (src == null) {
+            throw NullPointerException("Lists must be initialized.")
+        }
         try {
-            val obj = src!![0]!!
+            obj = src[0]
             val memberProperties = obj::class.memberProperties
             return serialize(memberProperties, obj)
-        } catch (e: NullPointerException) {
-            throw e
         } catch (e: IndexOutOfBoundsException) {
-            throw e
+            throw NullPointerException("Lists must be initialized with one instance of their type.")
+        } catch (e: NullPointerException) {
+            throw NullPointerException("Lists must be initialized with one instance of their type. The type must also be initialized.")
         }
     }
 
@@ -47,7 +53,7 @@ class GraphQlCollectionJsonSerializer<T> : JsonSerializer<List<T>> {
                 objecT.isBasic() -> jsonObject.addProperty(objecT.name, "")
                 objecT.isList() -> jsonObject.add(objecT.name, createElement(objecT.getter.call(obj) as List<*>))
                 else -> {
-                    val call = objecT.getter.call(obj)
+                    val call = objecT.getter.call(obj)!!
                     jsonObject.add(objecT.name, createElement(call))
                 }
             }
@@ -58,13 +64,9 @@ class GraphQlCollectionJsonSerializer<T> : JsonSerializer<List<T>> {
     /**
      * Create a Json Element for an object.
      */
-    private fun createElement(call: Any?): JsonElement {
-        try {
-            val properties = call!!::class.memberProperties
-            return serialize(properties, call)
-        } catch (e: NullPointerException) {
-            throw Exception("Object was null.")
-        }
+    private fun createElement(call: Any): JsonElement {
+        val properties = call::class.memberProperties
+        return serialize(properties, call)
     }
 
     /**
@@ -85,6 +87,21 @@ class GraphQlCollectionJsonSerializer<T> : JsonSerializer<List<T>> {
      * Is [Int], [Float], [Double], [String], or [Enum]. Check for both primitive and wrapper classes.
      */
     private fun KProperty1<out Any, *>.isBasic(): Boolean {
+        return primitives.contains(this.returnType.javaType)
+    }
+
+    /**
+     * Check if a property is a subclass of [Collection]
+     */
+    private fun <T, V> KProperty1<T, V>.isList(): Boolean {
+        try {
+            return this.returnType.jvmErasure.isSubclassOf(Collection::class)
+        } catch (e: NullPointerException) {
+            throw Exception("Problem when checking if ${this.javaClass.name} was a list.")
+        }
+    }
+
+    companion object {
         val primitives = listOf<Class<*>>(
             Int::class.java,
             Integer::class.javaObjectType,
@@ -97,18 +114,5 @@ class GraphQlCollectionJsonSerializer<T> : JsonSerializer<List<T>> {
             Double::class.java,
             Double::class.javaObjectType
         )
-        return primitives.contains(this.returnType.javaType)
-    }
-
-    /**
-     * Check if a property is a subclass of [Collection]
-     */
-    private fun <T, V> KProperty1<T, V>.isList(): Boolean {
-        try {
-            return this.returnType.jvmErasure.isSubclassOf(Collection::class)
-        }
-        catch(e : NullPointerException) {
-            throw Exception("Problem when checking if ${this.javaClass.name} was a list.")
-        }
     }
 }

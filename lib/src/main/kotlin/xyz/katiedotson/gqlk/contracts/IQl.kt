@@ -1,6 +1,6 @@
 package xyz.katiedotson.gqlk.contracts
 
-interface IQl<T> {
-    fun  buildBody(request: IGqlK<T>) : String
-    fun  buildParameters(request: IGqlK<T>): String
+interface IQl {
+    fun  buildBody(request: IGqlK) : String
+    fun  buildParameters(request: IGqlK): String
 }

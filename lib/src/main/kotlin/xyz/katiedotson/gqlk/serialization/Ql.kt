@@ -7,20 +7,19 @@ import xyz.katiedotson.gqlk.contracts.IGqlK
 import xyz.katiedotson.gqlk.contracts.IQl
 import kotlin.reflect.full.memberProperties
 
-
-class Ql<T> : IQl<T> {
+class Ql : IQl {
 
     private var gson: Gson
 
     init {
         val gsonBuilder = GsonBuilder()
-        val serializer = GraphQlCollectionJsonSerializer<T>()
+        val serializer = GraphQlCollectionJsonSerializer()
         gsonBuilder.registerTypeAdapter(List::class.java, serializer)
         gson = gsonBuilder.create()
     }
 
-    override fun buildBody(request: IGqlK<T>): String {
-        val responseObjKey = request.requestBody!!::class.memberProperties.first().name
+    override fun buildBody(request: IGqlK): String {
+        val responseObjKey = request.requestBody::class.memberProperties.first().name
 
         val responseMap = request.requestBody.serializeToMap()
 
@@ -30,7 +29,7 @@ class Ql<T> : IQl<T> {
         } ?: return buildBodyForSingleObject(responseMap)
     }
 
-    override fun buildParameters(request: IGqlK<T>): String {
+    override fun buildParameters(request: IGqlK): String {
         val filtered = request::class.memberProperties
             .filter { mem ->
                 !IGqlK::class.members
@@ -120,7 +119,6 @@ class Ql<T> : IQl<T> {
     private fun Any.isMap(): Boolean {
         return this as? Map<String, Any> != null
     }
-
 
     private fun <T> T.serializeToMap(): Map<String, Any> {
         return convert()

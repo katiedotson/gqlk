@@ -1,37 +1,74 @@
-## Welcome to GitHub Pages
+# gqlk
+A concise toolkit for generating GraphQl requests in Kotlin with Moshi and Retrofit
 
-You can use the [editor on GitHub](https://github.com/katiedotson/gqlk/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
-
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
-
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+## Usage
+#### Example request body (see code comments for details):
+```kotlin
+data class GetWidgetsRequest(
+  val queryParam: String, // add query paramters as regular properties
+  override val path: String = "getWidgets", // override the path value for the root of the query/mutation
+  override val type: GqlKRequestType = GqlKRequestType.QUERY, // or GqlKRequestType.MUTATION
+  override val requestBody: GetWidgetsResponse = GetWidgetsResponse() // default constructor must work for response (provide default values when constructing classes)
+) : GqlK() // Be sure to extend GqlK
+```
+#### Example response body (see code comments for details):
+```kotlin
+data class GetWidgetsResponse(
+  val widgets: List<WidgetResponse> = listOf(WidgetResponse()), // name the properties so they match the query body; be sure to initialize a list with a default instance
+) {
+  data class WidgetResponse(val foo: String = "", val bar: Int = 0)
+}
+```
+#### GraphQl Query generated for the above example:
+```graphql
+{
+  # "getWidgets" is the path property of the request
+  getWidgets (queryParam: "parameter-value") { 
+    # the name of the property on GetWidgetsResponse
+    widgets { 
+      # properties of the WidgetResponse class
+      foo
+      bar
+    }
+  }
+}
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+#### Example call using Retrofit and Moshi
+##### Retrofit Service
+```kotlin
+@POST(GRAPHQL)
+suspend fun getWidgets(@Body getWidgetsRequest: GqlKRequest): GqlKResponse<GetWidgetsResponse>
+```
+##### Repository
+```kotlin
+val getWidgetsRequestObj = GetWidgetsRequest(GetWidgetsRequest("parameter-value")).toQueryObject() // create an instance using any parameters and call .toQueryObject()
+val response = service.getWidgets(getWidgetsRequest) // get GqlKResponse, then any errors at response.errors or the data at response.data
+```
 
-### Jekyll Themes
+### Differing response body and request body
+Sometimes a request needs a different request body than its response body. In the example below, the request body will be the `Launchpad` class, but the response will be returned as the `GetLaunchpadResponse`. 
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/katiedotson/gqlk/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+#### Request class example
+```kotlin
+data class GetLaunchpadRequest(
+    val id: String = "vafb_slc_3w",
+    override val path: String = "launchpad",
+    override val requestBody: Launchpad = Launchpad(),
+    override val type: GqlKRequestType = GqlKRequestType.QUERY
+) : GqlK() {
+    data class GetLaunchpadResponse(
+        val launchpad: Launchpad = Launchpad() // RESPONSE
+    )
+    data class Launchpad(val details: String = "")
+}
+```
+#### Usage in the service class
+```kotlin
+@POST(GRAPHQL)
+// the type param of the response is GetLaunchpadResponse, not the Launchpad class that is the requestBody
+suspend fun getLaundpad(@Body getLaunchpadRequest: GqlKRequest): GqlKResponse<GetLaunchpadResponse>
+```
 
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+## Examples
+See [https://github.com/katiedotson/gqlk/tree/main/lib/src/test/kotlin/xyz/katiedotson/gqlk]

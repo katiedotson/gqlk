@@ -6,17 +6,24 @@ A concise toolkit for generating GraphQl requests in Kotlin with Moshi and Retro
 ## Usage
 #### Example request body (see code comments for details):
 ```kotlin
+// Be sure to extend GqlK
 data class GetWidgetsRequest(
-  val queryParam: String, // add query paramters as regular properties
-  override val path: String = "getWidgets", // override the path value for the root of the query/mutation
-  override val type: GqlKRequestType = GqlKRequestType.QUERY, // or GqlKRequestType.MUTATION
-  override val requestBody: GetWidgetsResponse = GetWidgetsResponse() // default constructor must work for response (provide default values when constructing classes)
-) : GqlK() // Be sure to extend GqlK
+  // add query paramters as regular properties
+  val queryParam: String,
+  // override the path value for the root of the query/mutation
+  override val path: String = "getWidgets",
+  // set type to GqlKRequestType.QUERY or GqlKRequestType.MUTATION
+  override val type: GqlKRequestType = GqlKRequestType.QUERY,
+  // default constructor must work for response (provide default values when constructing classes)
+  override val requestBody: GetWidgetsResponse = GetWidgetsResponse() 
+) : GqlK()
 ```
 #### Example response body (see code comments for details):
 ```kotlin
 data class GetWidgetsResponse(
-  val widgets: List<WidgetResponse> = listOf(WidgetResponse()), // name the properties so they match the query body; be sure to initialize a list with a default instance
+  // name the properties so they match the query body; 
+  // be sure to initialize a list with a default instance
+  val widgets: List<WidgetResponse> = listOf(WidgetResponse()), 
 ) {
   data class WidgetResponse(val foo: String = "", val bar: Int = 0)
 }
@@ -44,8 +51,10 @@ suspend fun getWidgets(@Body getWidgetsRequest: GqlKRequest): GqlKResponse<GetWi
 ```
 ##### Repository
 ```kotlin
-val getWidgetsRequestObj = GetWidgetsRequest(GetWidgetsRequest("parameter-value")).toQueryObject() // create an instance using any parameters and call .toQueryObject()
-val response = service.getWidgets(getWidgetsRequest) // get GqlKResponse, then any errors at response.errors or the data at response.data
+// create an instance using any parameters and call .toQueryObject()
+val getWidgetsRequestObj = GetWidgetsRequest(GetWidgetsRequest("parameter-value")).toQueryObject() 
+// get GqlKResponse, then any errors at response.errors or the data at response.data
+val response = service.getWidgets(getWidgetsRequest) 
 ```
 
 ### Differing response body and request body

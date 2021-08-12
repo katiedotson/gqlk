@@ -22,6 +22,15 @@ interface ApiService {
     @POST(GRAPHQL)
     suspend fun getLaunchpad(@Body getLaunchpadRequest: GqlKRequest): GqlKResponse<GetLaunchpadRequest.GetLaunchpadResponse>
 
+    @POST(GRAPHQL)
+    suspend fun insertUsers(@Body insertUsersRequest: GqlKRequest): GqlKResponse<InsertUsersRequest.InsertUsersResponse>
+
+    @POST(GRAPHQL)
+    suspend fun deleteUser(@Body deleteUserRequest: GqlKRequest): GqlKResponse<DeleteUserRequest.DeleteUserResponse>
+
     @POST(ROOT)
     suspend fun getCountries(@Body getCountriesRequest: GqlKRequest): GqlKResponse<GetCountriesRequest.GetCountriesResponse>
+
+    @POST(ROOT)
+    suspend fun getLanguage(@Body getLanguageRequest: GqlKRequest): GqlKResponse<GetLanguageRequest.LanguageResponse>
 }

@@ -1,13 +1,10 @@
 package xyz.katiedotson.gqlk
 
-import xyz.katiedotson.gqlk.request.GetCapsuleRequest
-import xyz.katiedotson.gqlk.request.GetCoreRequest
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import xyz.katiedotson.gqlk.request.GetLaunchpadRequest
-import xyz.katiedotson.gqlk.request.GetPastLaunchesRequest
+import xyz.katiedotson.gqlk.request.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SpacexRepositoryTest {
@@ -19,33 +16,26 @@ class SpacexRepositoryTest {
         service = ApiServiceFactory.buildApiService("https://api.spacex.land/")
     }
 
-    /**
-     * Test a request will a single parameter that returns an object with non-primitive properties and a list.
-     */
     @Test
-    fun when_querySent_then_expectedResponseReturned() = runBlocking {
+    fun `Request with single parameter retruns object with non-primitive properties and a list`() = runBlocking {
 
         val capsuleId = "C105"
         val obj = GetCapsuleRequest(capsuleId).toQueryObject()
-        val response = service.getCapsuleById(obj)
-        val domainObj = response.data?.toDomain()
+        val response = service.getCapsuleById(obj).data
             ?: throw Exception("Get Capsule Request test failed. Response.data is null. Check the query.")
 
-        assert(capsuleId == domainObj.id)
-        assert(domainObj.dragon.active)
-        assert(0 == domainObj.dragon.crewCapacity)
-        assert(1 == domainObj.landings)
-        assert("unknown" == domainObj.status)
-        assert("Dragon 1.1" == domainObj.type)
-        assert(14 == domainObj.missions[0].flight)
-        assert("CRS-3" == domainObj.missions[0].name)
+        assert(capsuleId == response.capsule.id)
+        assert(response.capsule.dragon.active)
+        assert(0 == response.capsule.dragon.crew_capacity)
+        assert(1 == response.capsule.landings)
+        assert("unknown" == response.capsule.status)
+        assert("Dragon 1.1" == response.capsule.type)
+        assert(14 == response.capsule.missions[0].flight)
+        assert("CRS-3" == response.capsule.missions[0].name)
     }
 
-    /**
-     * Test that when an error is received, the response body is still returned and can be used.
-     */
     @Test
-    fun when_errorReceived_then_errorHandled() = runBlocking {
+    fun `Errors handled`() = runBlocking {
         val coreId = "e"
         val expectedMessage = "Cannot query field \"nonexistent\" on type \"Core\"."
         val locationsLine = "1"
@@ -63,7 +53,7 @@ class SpacexRepositoryTest {
     }
 
     @Test
-    fun when_complexQuerySubmitted_then_correctResponseReceived() = runBlocking {
+    fun `Complex query`() = runBlocking {
         val expectedMissionName = "Starlink-15 (v1.0)"
         val expectedLaunchDate = "2020-10-24T11:31:00-04:00"
         val expectedLaunchSiteName = "Cape Canaveral Air Force Station Space Launch Complex 40"
@@ -112,12 +102,8 @@ class SpacexRepositoryTest {
         assert(launch.ships[0].name == expectedShipName)
     }
 
-
-    /**
-     * Request body is of type
-     */
     @Test
-    fun when_queryClassIsDifferentFromResponseClass_then_correctResponseReceived() = runBlocking {
+    fun `Query class is different than response class`() = runBlocking {
         val obj = GetLaunchpadRequest().toQueryObject()
         val response = service.getLaunchpad(obj)
 
@@ -127,5 +113,21 @@ class SpacexRepositoryTest {
                     "Performed a static fire but was never used for a " +
                     "launch and abandoned due to scheduling conflicts."
         assert(response.data!!.launchpad.details == expectedDetails)
+    }
+
+    @Test
+    fun `Mutation with list insert and delete with where clause`() = runBlocking {
+        val userId = "f71c633d-dd98-4841-90a4-ab25304c0762"
+        val frankS = InsertUsersRequest.toGqlUser(userId, "Frank S.", "To the moon")
+        val list = listOf(frankS)
+        val obj = InsertUsersRequest(list).toQueryObject()
+        val response = service.insertUsers(obj)
+        assert(response.errors == null)
+
+        if (response.errors == null) {
+            val deleteObj = DeleteUserRequest(DeleteUserRequest.toWhereClause(userId)).toQueryObject()
+            val deleteResponse = service.deleteUser(deleteObj)
+            assert(deleteResponse.errors == null)
+        }
     }
 }

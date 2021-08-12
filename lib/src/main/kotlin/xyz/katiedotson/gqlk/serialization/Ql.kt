@@ -103,8 +103,18 @@ class Ql : IQl {
             is String -> "\"${property}\""
             is Enum<*>? -> property?.toString() ?: throw initializationException
             is Enum<*> -> property.toString()
+            (property is List<*>?) -> throw initializationException
+            is List<*> -> buildForListInQuery(property)
             else -> buildQlForObjInQuery(property.serializeToMap())
         }
+    }
+
+    private fun buildForListInQuery(property: List<*>): String {
+        val listString =  property.fold("") { accum, item ->
+            "$accum ${wrapForTypeInQuery(item)}"
+        }
+
+        return "[ $listString ]"
     }
 
     private inline fun <I, reified O> I.convert(): O {

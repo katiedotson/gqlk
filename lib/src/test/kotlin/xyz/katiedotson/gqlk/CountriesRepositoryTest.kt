@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import xyz.katiedotson.gqlk.request.GetLanguageRequest
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CountriesRepositoryTest {
@@ -15,11 +16,8 @@ class CountriesRepositoryTest {
         service = ApiServiceFactory.buildApiService("https://countries.trevorblades.com")
     }
 
-    /**
-     * Test a request with an object in the query and whose response is a list.
-     */
     @Test
-    fun when_querySent_then_expectedResponseReturned() = runBlocking {
+    fun `Request with an object in the query and whose response is a list`() = runBlocking {
         val continent = "EU"
         val obj = GetCountriesRequest(GetCountriesRequest.countryFilter(continent)).toQueryObject()
         val response = service.getCountries(obj)
@@ -32,5 +30,16 @@ class CountriesRepositoryTest {
         assert(france.languages.first().name == "French")
         assert(france.continent.code == continent)
         assert(france.continent.name == "Europe")
+    }
+
+    @Test
+    fun `Simple query with object response`() = runBlocking {
+        val languageCode = "en"
+        val expectedName = "English"
+        val obj = GetLanguageRequest(languageCode).toQueryObject()
+        val response = service.getLanguage(obj)
+        val languageName = response.data?.language?.name ?: throw Exception("Language data was not returned properly. Check the request.")
+
+        assert(languageName == expectedName)
     }
 }

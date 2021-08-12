@@ -2,9 +2,6 @@ package xyz.katiedotson.gqlk.request
 
 import xyz.katiedotson.gqlk.GqlK
 import xyz.katiedotson.gqlk.contracts.GqlKRequestType
-import xyz.katiedotson.gqlk.domain.Capsule
-import xyz.katiedotson.gqlk.domain.Dragon
-import xyz.katiedotson.gqlk.domain.Mission
 
 data class GetCapsuleRequest(
     val id: String,
@@ -15,16 +12,6 @@ data class GetCapsuleRequest(
     data class GetCapsuleResponse(
         var capsule: CapsuleResponse = CapsuleResponse(),
     ) {
-        fun toDomain(): Capsule {
-            return Capsule(
-                dragon = capsule.dragon.toDomain(),
-                capsule.id,
-                capsule.landings,
-                capsule.status,
-                capsule.type,
-                CapsuleMission.toDomain(capsule.missions)
-            )
-        }
 
         data class CapsuleResponse(
             var dragon: ResponseDragon = ResponseDragon(),
@@ -46,22 +33,10 @@ data class GetCapsuleRequest(
             var id: String = "",
             var name: String = "",
             var wikipedia: String = "",
-        ) {
-            fun toDomain(): Dragon {
-                return Dragon(active, crew_capacity)
-            }
-        }
+        )
 
         data class Distance(var feet: Float = 0f, var meters: Float = 0f)
 
-        data class CapsuleMission(var flight: Int = 0, var name: String = "") {
-            companion object {
-                fun toDomain(missions: List<CapsuleMission>): List<Mission> {
-                    return missions.map {
-                        Mission(it.flight, it.name)
-                    }
-                }
-            }
-        }
+        data class CapsuleMission(var flight: Int = 0, var name: String = "")
     }
 }
